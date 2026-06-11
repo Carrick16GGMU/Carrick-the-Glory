@@ -24,7 +24,7 @@ GitHub 서버에서 5분마다 무료 자동 실행 → 조건 충족 시 텔레
    |---|---|
    | TELEGRAM_TOKEN / TELEGRAM_CHAT_ID | 텔레그램 |
    | TOSS_CLIENT_ID / TOSS_CLIENT_SECRET | 토스 Open API 키 |
-   | ANTHROPIC_API_KEY | (선택) 알림에 AI 해석 한 줄 |
+   | OPENAI_API_KEY | (선택) 알림에 AI 해석 한 줄(gpt-4o-mini) |
 4. Actions → market-alerts → **Run workflow** 로 테스트
 
 ### 첫 실행 시 꼭 확인 (1회)

@@ -25,7 +25,7 @@ from datetime import datetime, timezone, timedelta
 # ---- 환경변수 (GitHub Secrets) ----
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID")
-ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY")   # 없으면 AI 한 줄 생략
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY")         # 없으면 AI 한 줄 생략
 TOSS_ID = os.environ.get("TOSS_CLIENT_ID")
 TOSS_SECRET = os.environ.get("TOSS_CLIENT_SECRET")
 
@@ -291,7 +291,8 @@ def heartbeat_text(meta_cfg, counters, now_kst):
 
 # ═════════════ ④ AI 한 줄(선택) / ⑤ 발송 ═════════════
 def make_ai_line(fired, snapshot):
-    if not ANTHROPIC_KEY:
+    """알림 발동 시 OpenAI로 해석 1~2문장 생성. 키 없으면 빈 문자열."""
+    if not OPENAI_KEY:
         return ""
     try:
         names = ", ".join(a["name"] for a in fired)
@@ -299,16 +300,15 @@ def make_ai_line(fired, snapshot):
                   "이 조합을 한국어 1~2문장으로 투자자 관점에서 해석해줘. "
                   "리스크온/오프 성격과 주의점만 간결히. 단정적 매매 지시는 하지 마.")
         r = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={"x-api-key": ANTHROPIC_KEY,
-                     "anthropic-version": "2023-06-01",
-                     "content-type": "application/json"},
-            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 200,
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {OPENAI_KEY}",
+                     "Content-Type": "application/json"},
+            json={"model": "gpt-4o-mini", "max_tokens": 200,
                   "messages": [{"role": "user", "content": prompt}]},
             timeout=20,
         )
         r.raise_for_status()
-        return "\n\n🧠 " + r.json()["content"][0]["text"].strip()
+        return "\n\n🧠 " + r.json()["choices"][0]["message"]["content"].strip()
     except Exception as e:
         print(f"[경고] AI 한 줄 실패: {e}")
         return ""
