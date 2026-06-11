@@ -33,10 +33,12 @@ jobs:
 
       - name: persist state & log
         run: |
-          git add state.json alerts_log.csv 2>/dev/null || true
           if [[ -n "$(git status --porcelain state.json alerts_log.csv 2>/dev/null)" ]]; then
             git config user.name "alert-bot"
             git config user.email "bot@users.noreply.github.com"
+            git add state.json alerts_log.csv
             git commit -m "update state/log"
-            git push
+            # 원격이 앞서 있으면(웹 편집 등) 받아서 재배치 후 push, 실패해도 job은 통과(다음 실행이 재시도)
+            git pull --rebase --autostash origin main || true
+            git push || echo "::warning::state push 실패 — 다음 실행에서 재시도됩니다"
           fi
