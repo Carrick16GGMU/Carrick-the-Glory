@@ -1,0 +1,56 @@
+# ============================================================
+#  감시 규칙 v2.1 (종혁님이 고치는 곳은 여기뿐)
+# ============================================================
+#  [type: single]    한 지표 비교. metric: price / change_pct(당일%) / change_abs(당일 절대변동)
+#  [type: ma_cross]  현재가가 이동평균선 통과. ma_period, direction(below|above)
+#  [type: divergence] 두 지표 격차. mode: daily_gap / lookback_spread
+#  [session: KR]     한국 장중(KST 09:00~15:30)에만 평가 (세션 불일치 가짜신호 방지)
+#
+#  데이터 소스는 코드가 자동 분기: QQQ/SPY/RSP/HYG=토스(공식), 나머지=야후
+# ------------------------------------------------------------
+
+meta:
+  # QQQ 레벨(선행스팬2/1)을 트레이딩뷰에서 마지막으로 확인한 날짜.
+  # 7일 지나면 하트비트가 "레벨 갱신 필요"를 경고합니다. (낡은 좌표 알림 방지)
+  levels_updated: "2026-06-11"
+
+alerts:
+  # -- QQQ : 트레이딩 참고 레벨 (출처: 일목 선행스팬 수동 캘리브레이션 — 주1회 갱신 필요) --
+  - {name: "QQQ 선행스팬2 접근(~$661)", type: single, symbol: "QQQ", metric: price, direction: below, threshold: 661}
+  - {name: "QQQ 선행스팬2 이탈($654)",  type: single, symbol: "QQQ", metric: price, direction: below, threshold: 654}
+  - {name: "QQQ 선행스팬1 회복($720)",  type: single, symbol: "QQQ", metric: price, direction: above, threshold: 720}
+
+  # -- VIX : 단계 돌파 + 일중 급등 + (양방향) 안정 복귀 --
+  - {name: "VIX 20 돌파(주의)",    type: single, symbol: "^VIX", metric: price, direction: above, threshold: 20}
+  - {name: "VIX 25 돌파(스트레스)", type: single, symbol: "^VIX", metric: price, direction: above, threshold: 25}
+  - {name: "VIX 30 돌파(패닉)",    type: single, symbol: "^VIX", metric: price, direction: above, threshold: 30}
+  - {name: "VIX 일중 급등(+20%)",  type: single, symbol: "^VIX", metric: change_pct, direction: above, threshold: 20}
+  - {name: "VIX 20 하향 안정 복귀", type: single, symbol: "^VIX", metric: price, direction: below, threshold: 20}
+
+  # -- 나스닥 선물 : 야간 급변 (양방향) --
+  - {name: "나스닥선물 -2%(주의)",  type: single, symbol: "NQ=F", metric: change_pct, direction: below, threshold: -2}
+  - {name: "나스닥선물 -3%(경고)",  type: single, symbol: "NQ=F", metric: change_pct, direction: below, threshold: -3}
+  - {name: "나스닥선물 +3% 급반등", type: single, symbol: "NQ=F", metric: change_pct, direction: above, threshold: 3}
+
+  # -- 미 10년물 금리 --
+  - {name: "미10Y 4.75% 돌파",  type: single, symbol: "^TNX", metric: price, direction: above, threshold: 4.75}
+  - {name: "미10Y 급등(+10bp)", type: single, symbol: "^TNX", metric: change_abs, direction: above, threshold: 0.10}
+  - {name: "미10Y 급락(-10bp)", type: single, symbol: "^TNX", metric: change_abs, direction: below, threshold: -0.10}
+
+  # -- 원/달러 (야후 유지: 토스 환율API는 전일값 미제공 가능성 → 검증 후 전환 TODO) --
+  - {name: "원/달러 1540 돌파", type: single, symbol: "KRW=X", metric: price, direction: above, threshold: 1540}
+  - {name: "원/달러 일중 +1%",  type: single, symbol: "KRW=X", metric: change_pct, direction: above, threshold: 1}
+
+  # -- 유가(WTI) : 지정학·인플레 꼬리위험 (신규) --
+  - {name: "WTI $95 돌파(에너지쇼크)", type: single, symbol: "CL=F", metric: price, direction: above, threshold: 95}
+  - {name: "WTI 일중 +5% 급등",       type: single, symbol: "CL=F", metric: change_pct, direction: above, threshold: 5}
+
+  # -- HYG : 신용 조기경보 (양방향) --
+  - {name: "HYG 50일선 이탈", type: ma_cross, symbol: "HYG", ma_period: 50, direction: below}
+  - {name: "HYG 50일선 회복", type: ma_cross, symbol: "HYG", ma_period: 50, direction: above}
+  - {name: "HYG 일중 -1%",    type: single, symbol: "HYG", metric: change_pct, direction: below, threshold: -1}
+
+  # -- 이격(divergence) --
+  - {name: "시장폭 악화(RSP<SPY, 5일 2%p)", type: divergence, symbol_a: "RSP", symbol_b: "SPY", mode: lookback_spread, lookback_days: 5, direction: below, threshold: -2}
+  - {name: "로테이션(RSP>SPY, 5일 2%p)",    type: divergence, symbol_a: "RSP", symbol_b: "SPY", mode: lookback_spread, lookback_days: 5, direction: above, threshold: 2}
+  - {name: "한·미 디커플링(4%p)",           type: divergence, symbol_a: "^KS11", symbol_b: "NQ=F", mode: daily_gap, threshold: 4, session: KR}
