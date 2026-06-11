@@ -1,0 +1,42 @@
+name: market-alerts
+
+on:
+  schedule:
+    # 5분마다 (UTC). 야후 차단 시 "*/15"로 완화. 주말 포함하려면 "1-5" → "*"
+    - cron: "*/5 * * * 1-5"
+  workflow_dispatch:   # Actions 탭에서 수동 실행(테스트) 버튼
+
+permissions:
+  contents: write      # state.json / alerts_log.csv 저장용
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install deps
+        run: pip install -r requirements.txt
+
+      - name: run checker
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TOSS_CLIENT_ID: ${{ secrets.TOSS_CLIENT_ID }}
+          TOSS_CLIENT_SECRET: ${{ secrets.TOSS_CLIENT_SECRET }}
+        run: python check_alerts.py
+
+      - name: persist state & log
+        run: |
+          git add state.json alerts_log.csv 2>/dev/null || true
+          if [[ -n "$(git status --porcelain state.json alerts_log.csv 2>/dev/null)" ]]; then
+            git config user.name "alert-bot"
+            git config user.email "bot@users.noreply.github.com"
+            git commit -m "update state/log"
+            git push
+          fi
