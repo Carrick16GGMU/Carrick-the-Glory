@@ -155,14 +155,12 @@ def fetch_toss_series(symbols):
 
 # ═════════════ ① 수집: 야후 ═════════════
 def _prev_from_closes(price, closes):
-    """전일종가를 일봉 종가 배열에서 결정.
-    야후 chartPreviousClose는 range에 따라 '구간 첫 봉 직전(=3개월 전)' 값을 줘서 쓰면 안 됨.
-    마지막 봉이 '오늘 진행중'이면 현재가와 거의 같으므로 그 직전 봉을 전일종가로 사용."""
-    if not closes:
-        return None
-    if price and len(closes) >= 2 and abs(closes[-1] - price) / price < 0.0005:
+    """전일종가 = 일봉 종가 배열의 '마지막에서 두 번째'.
+    야후 일봉은 closes[-1]=오늘(현재가와 같음), closes[-2]=어제 종가.
+    (chartPreviousClose는 range에 따라 3개월 전 값을 줘서 사용 금지)"""
+    if len(closes) >= 2:
         return closes[-2]
-    return closes[-1]
+    return closes[-1] if closes else None
 
 
 def fetch_yahoo(symbol):
