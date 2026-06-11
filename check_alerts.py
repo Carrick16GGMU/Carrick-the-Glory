@@ -154,6 +154,17 @@ def fetch_toss_series(symbols):
 
 
 # ═════════════ ① 수집: 야후 ═════════════
+def _prev_from_closes(price, closes):
+    """전일종가를 일봉 종가 배열에서 결정.
+    야후 chartPreviousClose는 range에 따라 '구간 첫 봉 직전(=3개월 전)' 값을 줘서 쓰면 안 됨.
+    마지막 봉이 '오늘 진행중'이면 현재가와 거의 같으므로 그 직전 봉을 전일종가로 사용."""
+    if not closes:
+        return None
+    if price and len(closes) >= 2 and abs(closes[-1] - price) / price < 0.0005:
+        return closes[-2]
+    return closes[-1]
+
+
 def fetch_yahoo(symbol):
     try:
         r = requests.get(
@@ -165,8 +176,8 @@ def fetch_yahoo(symbol):
         res = r.json()["chart"]["result"][0]
         meta = res["meta"]
         price = meta.get("regularMarketPrice")
-        prev = meta.get("chartPreviousClose") or meta.get("previousClose")
         closes = [c for c in res["indicators"]["quote"][0]["close"] if c is not None]
+        prev = _prev_from_closes(price, closes)   # ← chartPreviousClose 사용 금지(3개월 전 값 버그)
         return {
             "price": price,
             "change_pct": (price / prev - 1) * 100 if price and prev else None,
@@ -303,8 +314,12 @@ def make_ai_line(fired, snapshot):
             "https://api.openai.com/v1/chat/completions",
             headers={"Authorization": f"Bearer {OPENAI_KEY}",
                      "Content-Type": "application/json"},
-            json={"model": "gpt-4o-mini", "max_tokens": 200,
-                  "messages": [{"role": "user", "content": prompt}]},
+            json={"model": "gpt-4.1", "max_tokens": 200,
+                  "messages": [
+                      {"role": "system", "content": "너는 한국어로만 답하는 금융 애널리스트다. "
+                       "반드시 한국어로만 작성하고 일본어·한자(漢字)·중국어를 절대 섞지 마라."},
+                      {"role": "user", "content": prompt}
+                  ]},
             timeout=20,
         )
         r.raise_for_status()
