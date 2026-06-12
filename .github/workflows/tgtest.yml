@@ -1,0 +1,19 @@
+name: tg-test
+on:
+  workflow_dispatch:
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: send test
+        env:
+          T: ${{ secrets.TELEGRAM_TOKEN }}
+          C: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          echo "chat_id 길이: ${#C}"   # 값은 안 보이고 글자수만 표시(0이면 비어있는 것)
+          code=$(curl -s -o resp.txt -w "%{http_code}" \
+            "https://api.telegram.org/bot${T}/sendMessage" \
+            --data-urlencode "chat_id=${C}" \
+            --data-urlencode "text=✅ GitHub 테스트 메시지")
+          echo "HTTP 상태: $code"
+          echo "응답: $(cat resp.txt)"
