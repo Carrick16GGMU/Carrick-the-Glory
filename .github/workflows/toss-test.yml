@@ -1,0 +1,19 @@
+name: toss-test
+on:
+  workflow_dispatch:
+jobs:
+  token:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get token
+        env:
+          ID: ${{ secrets.TOSS_CLIENT_ID }}
+          SECRET: ${{ secrets.TOSS_CLIENT_SECRET }}
+        run: |
+          echo "ID 길이: ${#ID}, SECRET 길이: ${#SECRET}"
+          code=$(curl -s -o resp.txt -w "%{http_code}" \
+            -u "${ID}:${SECRET}" \
+            -d "grant_type=client_credentials" \
+            "https://openapi.tossinvest.com/oauth2/token")
+          echo "HTTP 상태: $code"
+          echo "응답: $(cat resp.txt)"
