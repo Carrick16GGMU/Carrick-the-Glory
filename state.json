@@ -9,7 +9,7 @@
   "VIX 20 하향 안정 복귀": true,
   "나스닥선물 -2%(주의)": false,
   "나스닥선물 -3%(경고)": false,
-  "나스닥선물 +3% 급반등": true,
+  "나스닥선물 +3% 급반등": false,
   "미10Y 4.75% 돌파": false,
   "미10Y 급등(+10bp)": false,
   "미10Y 급락(-10bp)": false,
@@ -23,8 +23,8 @@
   "시장폭 악화(RSP<SPY, 5일 2%p)": false,
   "로테이션(RSP>SPY, 5일 2%p)": false,
   "_counters": {
-    "runs": 0,
-    "fails": 0,
+    "runs": 1,
+    "fails": 4,
     "alerts": 0
   },
   "_last_heartbeat": "2026-06-16",
