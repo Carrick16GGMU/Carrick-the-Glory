@@ -23,8 +23,8 @@
   "시장폭 악화(RSP<SPY, 5일 2%p)": false,
   "로테이션(RSP>SPY, 5일 2%p)": false,
   "_counters": {
-    "runs": 0,
-    "fails": 0,
+    "runs": 1,
+    "fails": 4,
     "alerts": 0
   },
   "_last_heartbeat": "2026-06-20",
