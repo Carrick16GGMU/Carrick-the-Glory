@@ -13,7 +13,7 @@
   "미10Y 4.75% 돌파": false,
   "미10Y 급등(+10bp)": false,
   "미10Y 급락(-10bp)": false,
-  "원/달러 1540 돌파": false,
+  "원/달러 1540 돌파": true,
   "원/달러 일중 +1%": false,
   "WTI $95 돌파(에너지쇼크)": false,
   "WTI 일중 +5% 급등": false,
@@ -27,6 +27,6 @@
     "fails": 0,
     "alerts": 0
   },
-  "_last_heartbeat": "2026-06-27",
-  "한·미 디커플링(4%p)": true
+  "_last_heartbeat": "2026-06-29",
+  "한·미 디커플링(4%p)": false
 }
